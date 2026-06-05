@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card auth-card">
+    <h2>Welcome back</h2>
+    <p>Pick the language you are improving and let the agents help.</p>
+    <form method="post" class="auth-form">
+      <label for="email">Email or username</label>
+      <input id="email" name="email" type="text" required />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required />
+      <button type="submit">Log in</button>
+    </form>
+    <p class="muted">
+      No account? <a href="{{ url_for('main.register') }}">Create one</a> and start chaining lessons.
+    </p>
+  </section>
+{% endblock %}

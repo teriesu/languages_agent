@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card auth-card">
+    <h2>Create a learner profile</h2>
+    <form method="post" class="auth-form">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" required />
+
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required />
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required />
+
+      <label for="learning_language">Language you are learning</label>
+      <input id="learning_language" name="learning_language" type="text" placeholder="Spanish, Japanese, etc." />
+
+      <label for="native_language">Native language</label>
+      <input id="native_language" name="native_language" type="text" placeholder="English, Français..." />
+
+      <button type="submit">Create account</button>
+    </form>
+    <p class="muted">
+      Already learning? <a href="{{ url_for('main.login') }}">Log in</a> and review your material.
+    </p>
+  </section>
+{% endblock %}

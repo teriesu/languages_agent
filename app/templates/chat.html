@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="chat-shell card">
+    <header class="chat-header">
+      <div>
+        <h2>Lessons chat</h2>
+        <p>Ask for review, explanations, corrections, evaluations, or fresh activities.</p>
+      </div>
+      <div class="lesson-selector">
+        <label for="lesson-select">Choose a lesson</label>
+        <select id="lesson-select" name="lesson_id">
+          {% if lessons %}
+          {% for lesson in lessons %}
+          <option
+            value="{{ lesson.id }}"
+            data-description="{{ lesson.description|default('No description yet.') }}"
+            {% if selected_lesson and lesson.id == selected_lesson.id %}selected{% endif %}
+          >
+            {{ lesson.title }} · {{ lesson.language }}
+          </option>
+          {% endfor %}
+          {% else %}
+          <option disabled selected>Start by creating a lesson record.</option>
+          {% endif %}
+        </select>
+      </div>
+    </header>
+
+    <p class="lesson-description" id="lesson-description">
+      {{ selected_lesson.description if selected_lesson else 'Start by selecting a lesson to anchor the chat.' }}
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flash-list">
+      {% for category, message in messages %}
+      <li class="flash flash-{{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <div class="chat-history" id="chat-history">
+      {% for turn in history %}
+      <article class="chat-turn">
+        <header>
+          <span class="pill">{{ turn.lesson }}</span>
+          <p class="chat-user">You asked: {{ turn.message }}</p>
+        </header>
+        <div class="agent-grid">
+          {% for agent in turn.agents %}
+          <figure>
+            <figcaption>{{ agent.title }}</figcaption>
+            <p>{{ agent.message }}</p>
+          </figure>
+          {% endfor %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <form class="message-form" method="post" id="message-form">
+      <input type="hidden" name="lesson_id" id="selected-lesson" value="{{ selected_lesson.id if selected_lesson else '' }}" />
+      <label for="message-input">Talk to the agents</label>
+      <textarea id="message-input" name="message" required rows="2" placeholder="Ask for a review, explanation, correction, or activity..."></textarea>
+      <button type="submit">Send to agents</button>
+    </form>
+  </section>
+{% endblock %}
