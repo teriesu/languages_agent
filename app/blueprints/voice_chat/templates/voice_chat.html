@@ -25,6 +25,15 @@
           {% endif %}
         </select>
       </div>
+
+      <div class="voice-controls" style="margin-top: 1rem;">
+      <button id="recordButton" class="btn btn-primary">🎤 Iniciar Grabación</button>
+      <span id="recordingStatus" style="display: none; color: red; margin-left: 10px;">🔴 Grabando...</span>
+    </div>
     </header>
+    <script>
+      const processAudioUrl = "{{ url_for('voice_chat.process_audio') }}";
+    </script>
+    <script src="{{ url_for('voice_chat.static', filename='js/script.js') }}" defer></script>
   </section>
 {% endblock %}
