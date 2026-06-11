@@ -13,6 +13,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from .agents import plan_responses
 from .db import db
 from .models import Lesson, User
+from .utilities import get_current_user
+from .blueprints.voice_chat import voice_chat
+from .blueprints.main_chat import main_chat
 
 
 main_bp = Blueprint("main", __name__)
@@ -23,6 +26,8 @@ def create_app() -> Flask:
     app.config.from_object(Config)
     db.init_app(app)
     app.register_blueprint(main_bp)
+    app.register_blueprint(voice_chat)
+    app.register_blueprint(main_chat)
 
     @app.before_request
     def load_logged_in_user() -> None:
@@ -33,17 +38,9 @@ def create_app() -> Flask:
 
     return app
 
-
-def get_current_user() -> User | None:
-    user_id = session.get("user_id")
-    if not user_id:
-        return None
-    return User.query.get(user_id)
-
-
 @main_bp.route("/")
 def index():
-    return redirect(url_for("main.chat"))
+    return redirect(url_for("main_chat.chat"))
 
 
 @main_bp.route("/login", methods=["GET", "POST"])
@@ -56,7 +53,7 @@ def login():
             session.clear()
             session["user_id"] = user.id
             session["username"] = user.username
-            return redirect(url_for("main.chat"))
+            return redirect(url_for("main_chat.chat"))
         flash("Invalid credentials", "error")
     return render_template("auth/login.html")
 
@@ -96,46 +93,3 @@ def logout():
     session.clear()
     flash("Logged out", "info")
     return redirect(url_for("main.login"))
-
-
-@main_bp.route("/chat", methods=["GET", "POST"])
-def chat():
-    user = get_current_user()
-    if not user:
-        flash("Create an account to continue", "warning")
-        return redirect(url_for("main.login"))
-
-    lessons = Lesson.query.order_by(Lesson.created_at.desc()).all()
-    selected_lesson = None
-    lesson_id = request.values.get("lesson_id")
-    if lesson_id:
-        selected_lesson = Lesson.query.get(lesson_id)
-    if not selected_lesson and lessons:
-        selected_lesson = lessons[0]
-
-    history = list(session.get("chat_history", []))
-    if request.method == "POST":
-        message = request.form.get("message", "").strip()
-        if message:
-            agents = [
-                {"title": result.title, "message": result.message}
-                for result in plan_responses(message, selected_lesson.title if selected_lesson else None)
-            ]
-            history.append(
-                {
-                    "lesson": selected_lesson.title if selected_lesson else "General",
-                    "message": message,
-                    "agents": agents,
-                }
-            )
-            session["chat_history"] = history[-12:]
-        else:
-            flash("Ask something to trigger the language agents", "info")
-
-    return render_template(
-        "chat.html",
-        lessons=lessons,
-        selected_lesson=selected_lesson,
-        user=user,
-        history=history,
-    )

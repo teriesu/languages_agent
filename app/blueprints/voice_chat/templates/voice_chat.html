@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="chat-shell card">
+    <header class="chat-header">
+      <div>
+        <h2>Lessons chat</h2>
+        <p>Ask for review, explanations, corrections, evaluations, or fresh activities.</p>
+      </div>
+      <div class="lesson-selector">
+        <label for="lesson-select">Choose a lesson</label>
+        <select id="lesson-select" name="lesson_id">
+          {% if lessons %}
+          {% for lesson in lessons %}
+          <option
+            value="{{ lesson.id }}"
+            data-description="{{ lesson.description|default('No description yet.') }}"
+            {% if selected_lesson and lesson.id == selected_lesson.id %}selected{% endif %}
+          >
+            {{ lesson.title }} · {{ lesson.language }}
+          </option>
+          {% endfor %}
+          {% else %}
+          <option disabled selected>Start by creating a lesson record.</option>
+          {% endif %}
+        </select>
+      </div>
+    </header>
+  </section>
+{% endblock %}

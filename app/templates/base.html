@@ -27,6 +27,15 @@
           {% endif %}
         </nav>
       </header>
+      {% if session.get('user_id') %}
+      <nav class="main-nav">
+        <ul class="nav-menu">
+          <li><a href="{{ url_for('main_chat.chat') }}" class="nav-link">Chat</a></li>
+          <li><a href="{{ url_for('voice_chat.chat') }}" class="nav-link">Lessons</a></li>
+          <li><a href="#" class="nav-link">Profile</a></li>
+        </ul>
+      </nav>
+      {% endif %}
       <main class="content-shell">{% block content %}{% endblock %}</main>
     </div>
     <script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>

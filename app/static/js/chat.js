@@ -24,4 +24,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   syncLesson();
+
+  // Highlight active navigation item
+  const navLinks = document.querySelectorAll(".nav-link");
+  const currentPath = window.location.pathname;
+
+  navLinks.forEach((link) => {
+    const href = link.getAttribute("href");
+    if (currentPath === href || (currentPath === "/" && href === "/chat")) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
 });

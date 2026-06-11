@@ -4,6 +4,8 @@ from .config import Config
 from .db import db
 from .models import User
 from .routes import main_bp
+from .blueprints.voice_chat import voice_chat
+from .blueprints.main_chat import main_chat
 
 
 def create_app() -> Flask:
@@ -11,6 +13,8 @@ def create_app() -> Flask:
     app.config.from_object(Config)
     db.init_app(app)
     app.register_blueprint(main_bp)
+    app.register_blueprint(voice_chat)
+    app.register_blueprint(main_chat)
 
     @app.before_request
     def load_current_user() -> None:
