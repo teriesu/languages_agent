@@ -8,14 +8,16 @@ from flask import (
     session,
     url_for,
 )
+
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .agents import plan_responses
+from app.agents.agents import plan_responses
 from .db import db
 from .models import Lesson, User
 from .utilities import get_current_user
 from .blueprints.voice_chat import voice_chat
 from .blueprints.main_chat import main_chat
+from .blueprints.auth import auth
 
 
 main_bp = Blueprint("main", __name__)
@@ -28,6 +30,7 @@ def create_app() -> Flask:
     app.register_blueprint(main_bp)
     app.register_blueprint(voice_chat)
     app.register_blueprint(main_chat)
+    app.register_blueprint(auth)
 
     @app.before_request
     def load_logged_in_user() -> None:
@@ -37,59 +40,3 @@ def create_app() -> Flask:
             g.user = User.query.get(user_id)
 
     return app
-
-@main_bp.route("/")
-def index():
-    return redirect(url_for("main_chat.chat"))
-
-
-@main_bp.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form.get("email", "").strip()
-        password = request.form.get("password", "")
-        user = User.query.filter((User.email == email) | (User.username == email)).first()
-        if user and check_password_hash(user.password_hash, password):
-            session.clear()
-            session["user_id"] = user.id
-            session["username"] = user.username
-            return redirect(url_for("main_chat.chat"))
-        flash("Invalid credentials", "error")
-    return render_template("auth/login.html")
-
-
-@main_bp.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        email = request.form.get("email", "").strip()
-        password = request.form.get("password", "")
-        learning_language = request.form.get("learning_language")
-        native_language = request.form.get("native_language")
-
-        if not username or not email or not password:
-            flash("Username, email, and password are required.", "error")
-        elif User.query.filter((User.email == email) | (User.username == username)).first():
-            flash("A user with that username or email already exists.", "error")
-        else:
-            user = User(
-                username=username,
-                email=email,
-                password_hash=generate_password_hash(password),
-                learning_language=learning_language,
-                native_language=native_language,
-            )
-            db.session.add(user)
-            db.session.commit()
-            session.clear()
-            session["user_id"] = user.id
-            session["username"] = user.username
-            return redirect(url_for("main.chat"))
-    return render_template("auth/register.html")
-
-
-@main_bp.route("/logout")
-def logout():
-    session.clear()
-    flash("Logged out", "info")
-    return redirect(url_for("main.login"))

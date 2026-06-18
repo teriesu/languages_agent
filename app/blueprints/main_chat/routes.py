@@ -12,7 +12,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.agents import plan_responses
+from app.agents.agents import plan_responses
 from app.db import db
 from app.models import Lesson, User
 from app.utilities import get_current_user
@@ -22,7 +22,7 @@ def chat():
     user = get_current_user()
     if not user:
         flash("Create an account to continue", "warning")
-        return redirect(url_for("main.login"))
+        return redirect(url_for("auth.login"))
 
     lessons = Lesson.query.order_by(Lesson.created_at.desc()).all()
     selected_lesson = None

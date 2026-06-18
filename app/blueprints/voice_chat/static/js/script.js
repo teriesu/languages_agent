@@ -8,13 +8,19 @@ const lessonSelect = document.getElementById('lesson-select');
 recordButton.addEventListener('click', async () => {
 if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
-    recordButton.textContent = "🎤 Iniciar Grabación";
+    recordButton.textContent = "🎤 Start Recording";
     statusText.style.display = "none";
     return;
 }
 
 try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+            noiseSuppression: true,
+            echoCancellation: true,
+            autoGainControl: true  
+        }
+    });
     mediaRecorder = new MediaRecorder(stream);
     
     mediaRecorder.ondataavailable = event => {

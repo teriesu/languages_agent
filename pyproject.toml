@@ -14,4 +14,6 @@ dependencies = [
     "langgraph",
     "langsmith",
     "Werkzeug",
+    "langchain-openai",
+    "pydub"
 ]
