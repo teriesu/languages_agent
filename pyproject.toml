@@ -15,5 +15,6 @@ dependencies = [
     "langsmith",
     "Werkzeug",
     "langchain-openai",
-    "pydub"
+    "pydub",
+    "Flask-Migrate"
 ]
