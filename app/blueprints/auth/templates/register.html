@@ -14,15 +14,46 @@
       <input id="password" name="password" type="password" required />
 
       <label for="learning_language">Language you are learning</label>
-      <input id="learning_language" name="learning_language" type="text" placeholder="Spanish, Japanese, etc." />
+      {% if supported_languages %}
+        <select id="learning_language" name="learning_language" required>
+          <option value="">Select your learning language</option>
+          {% for lang_id, lang_name in supported_languages %}
+            <option value="{{ lang_id }}">{{ lang_name }}</option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <input id="learning_language" name="learning_language" type="text" placeholder="Spanish, Japanese, etc." />
+      {% endif %}
 
       <label for="native_language">Native language</label>
-      <input id="native_language" name="native_language" type="text" placeholder="English, Français..." />
+      {% if supported_languages %}
+        <select id="native_language" name="native_language" required>
+          <option value="">Select your native language</option>
+          {% for lang_id, lang_name in supported_languages %}
+            <option value="{{ lang_id }}">{{ lang_name }}</option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <input id="native_language" name="native_language" type="text" placeholder="English, Français..." />
+      {% endif %}
+
+      <label for="level_ll">Level of the language you are learning</label>
+      {% if possible_levels %}
+        <select id="level_ll" name="level_ll" required>
+          <option value="">Select the current level of the language you are learning</option>
+          {% for level_id, level_name, level_description in possible_levels %}
+            <option value="{{ level_id }}">{{ level_name }}</option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <input id="level_ll" name="level_ll" type="text" placeholder="Beginner, Intermediate, Advanced..." />
+      {% endif %}
 
       <button type="submit">Create account</button>
     </form>
     <p class="muted">
       Already learning? <a href="{{ url_for('auth.login') }}">Log in</a> and review your material.
     </p>
+
   </section>
 {% endblock %}
