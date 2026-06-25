@@ -14,12 +14,10 @@ from flask import (
     url_for,
     jsonify,
 )
-from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 from app.agents import transcribe_audio_in_memory
 from app.db import db
-from app.models import Lesson, User
 from app.utilities import get_current_user
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
