@@ -1,23 +1,19 @@
-from langchain_core.prompts import PromptTemplate
-from datetime import date
+from langchain_core.prompts import ChatPromptTemplate
 
-template = """\
-You are an language corrector that helps users improve their skills on a new language.
-
-The user is currently learning {language_learning} and is a native speaker of {language_native}. The user is at level {level}.
-
-Steps:
-1. You will receive a text from the user in {language_learning}.
-2. You will receive the corrected text from the user in {language_learning}.
-
-Rules:
-- You you should create a feedback for the user, explaining what was wrong in the original text and how it could be improved.
-"""
-
-prompt_template = PromptTemplate.from_template(template,
-                                               partial_variables={
-                                                    "language_learning": None,
-                                                    "language_native": None,
-                                                    "level": None
-                                                   },
-                                               )
+prompt_template = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        "You are a language mentor guiding a learner in {language_learning} who is a native speaker of {language_native} studying at level {level}.\n\n"
+        "Compare the user's original text with the corrected version, identify the main issues the learner made (grammar, vocabulary, word order, register, etc.), and produce concise feedback explaining what went wrong and how to improve.\n\n"
+        "Rules:\n"
+        "- Frame the feedback as a helpful suggestion, not a harsh critique.\n"
+        "- Keep the response focused on actionable improvements.\n"
+        "- Do not include the corrected text again.\n"
+        "- If the original text is already correct, acknowledge it and provide encouragement.\n"
+        "- If the user is B1 or above, provide the feedback in the target language; if below B1, provide it in the user's native language.\n"
+    ),
+    (
+        "human",
+        "Original text:\n{original_text}\n\nCorrected text:\n{corrected_text}",
+    ),
+])

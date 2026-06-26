@@ -14,7 +14,7 @@ load_dotenv()
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 @traceable(run_type="tool", name="Whisper_STT")
-def transcribe_audio_in_memory(audio_bytes: io.BytesIO, filename: str) -> str:
+def transcribe_audio_in_memory(audio_bytes: io.BytesIO, filename: str, language_code: str | None) -> str:
     """Filtra un poco la señal de ruido de fondo y devuelve la transcripción."""
     
     audio_bytes.seek(0)
@@ -30,7 +30,7 @@ def transcribe_audio_in_memory(audio_bytes: io.BytesIO, filename: str) -> str:
     transcription = client.audio.transcriptions.create(
         model="whisper-1",
         file=louder_buffer,
-        language="de"
+        language=language_code or "de"
     )
     return transcription.text
 

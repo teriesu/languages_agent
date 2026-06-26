@@ -4,6 +4,7 @@ let audioChunks = [];
 const recordButton = document.getElementById('recordButton');
 const statusText = document.getElementById('recordingStatus');
 const lessonSelect = document.getElementById('lesson-select');
+const audioFileInput = document.getElementById('audioFileInput');
 
 recordButton.addEventListener('click', async () => {
 if (mediaRecorder && mediaRecorder.state === "recording") {
@@ -33,11 +34,12 @@ try {
 
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
     audioChunks = [];
-    await sendAudioToBackend(audioBlob);
+    await sendAudioToBackend(audioBlob, 'user_audio.webm');
     };
 
     mediaRecorder.start();
     recordButton.textContent = "⏹ Stop recording";
+    statusText.textContent = "🔴 Grabando...";
     statusText.style.display = "inline";
 
 } catch (err) {
@@ -46,9 +48,29 @@ try {
 }
 });
 
-async function sendAudioToBackend(audioBlob) {
+audioFileInput.addEventListener('change', async (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (!['webm', 'mp3'].includes(extension || '')) {
+        alert('Please select a .webm or .mp3 audio file.');
+        event.target.value = '';
+        return;
+    }
+
+    statusText.textContent = "📤 Enviando archivo...";
+    statusText.style.display = "inline";
+    await sendAudioToBackend(file, file.name);
+    event.target.value = '';
+});
+
+async function sendAudioToBackend(audioFile, filename) {
 const formData = new FormData();
-formData.append("audio_file", audioBlob, "user_audio.webm");
+formData.append("audio_file", audioFile, filename);
 
 if (lessonSelect && lessonSelect.value) {
     formData.append("lesson_id", lessonSelect.value);
@@ -62,10 +84,20 @@ try {
     body: formData
     });
     
-    const result = await response.json();   
+    const result = await response.json();
 
-    
+    if (!response.ok) {
+        throw new Error(result.error || 'Unable to process the audio.');
+    }
+
+    statusText.textContent = "✅ Audio procesado";
+    statusText.style.color = "green";
+    statusText.style.display = "inline";
+
 } catch (err) {
     console.error("Error sending the audio:", err);
+    statusText.textContent = err.message || "Error al procesar el audio";
+    statusText.style.color = "red";
+    statusText.style.display = "inline";
 }
 }

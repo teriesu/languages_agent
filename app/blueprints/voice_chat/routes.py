@@ -3,26 +3,22 @@ import os
 
 from . import voice_chat
 
-from flask import (
-    Flask,
-    Blueprint,
-    flash,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-    jsonify,
-)
+from flask import render_template, request, jsonify
 from werkzeug.utils import secure_filename
+from pydub import AudioSegment
 
 from app.agents import transcribe_audio_in_memory
-from app.db import db
-from app.utilities import get_current_user
+from app.agents.support.nodes.speach_corrector.node import correct_text
+from app.agents.support.nodes.speach_evaluator.node import evaluate_text
+from app.models import Lesson
+from app.utilities import get_current_user, get_user_language_details
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, "uploaded_audio")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+ALLOWED_AUDIO_EXTENSIONS = {".webm", ".mp3"}
+ALLOWED_AUDIO_MIME_TYPES = {"audio/webm", "audio/mpeg", "audio/mp3", "video/webm"}
 
 @voice_chat.route("/", methods=["GET", "POST"])
 def chat():
@@ -40,10 +36,10 @@ def process_audio():
 
     if 'audio_file' not in request.files:
         return jsonify({"error": "The audio file is missing"}), 400
-        
+
     audio_file = request.files['audio_file']
     lesson_id = request.form.get('lesson_id')
-    
+
     if audio_file.filename == '':
         return jsonify({"error": "The audio file is empty"}), 400
 
@@ -51,43 +47,73 @@ def process_audio():
     if not filename:
         return jsonify({"error": "Invalid audio filename"}), 400
 
+    extension = os.path.splitext(filename)[1].lower()
+    content_type = (audio_file.mimetype or "").lower()
+
+    if extension not in ALLOWED_AUDIO_EXTENSIONS:
+        return jsonify({"error": "Only .webm and .mp3 files are supported."}), 400
+
+    if content_type and content_type not in ALLOWED_AUDIO_MIME_TYPES:
+        print(f"Unsupported audio format: {content_type}")
+        return jsonify({"error": "Unsupported audio format."}), 400
+
     saved_path = os.path.join(UPLOAD_FOLDER, filename)
     audio_file.seek(0)
     audio_file.save(saved_path)
 
-    print(f"Received audio file: {filename} for lesson ID: {lesson_id}")
-    print(f"Saved audio file to: {saved_path}")
-
-    in_memory_audio = io.BytesIO(open(saved_path, "rb").read())
-    in_memory_audio.name = filename
-
     try:
-        user_text = transcribe_audio_in_memory(in_memory_audio, filename)
-        print("Transcription result:", user_text)
-        # 3. Preparar el estado inicial para LangGraph
-        # Por ejemplo, si el usuario está practicando cómo pedir un café en alemán, 
-        # aquí pasas la transcripción y el ID de la lección para recuperar el contexto.
-        initial_state = {
-            "messages": [("user", user_text)],
-            "lesson_id": lesson_id
-            # "language": "de" (si lo manejas en el estado)
-        }
+        with open(saved_path, "rb") as saved:
+            file_bytes = saved.read()
+    
+        if extension == ".webm":
+            print(f"📦 Abstrayendo canal de audio purificado desde el contenedor: {content_type}")
         
-        # 4. Invocar tu agente (LangGraph)
-        # config={"configurable": {"thread_id": "..."}} es útil si usas memoria en LangGraph
-        # resultado_grafo = mi_grafo_de_estudio.invoke(initial_state)
-        
-        # Asumiendo que tu grafo devuelve un estado donde el último mensaje es del AI
-        # respuesta_ia = resultado_grafo["messages"][-1].content
+            audio_segment = AudioSegment.from_file(io.BytesIO(file_bytes), format="webm")
+            
+            in_memory_audio = io.BytesIO()
+            audio_segment.export(in_memory_audio, format="wav")
+            in_memory_audio.seek(0)
+            
+            filename_for_transcriber = filename.replace(extension, ".wav")
+        else:
+            
+            in_memory_audio = io.BytesIO(file_bytes)
+            filename_for_transcriber = filename
 
-        # 5. Retornar al frontend
+        user_language_details = get_user_language_details()
+        ll_contraction = user_language_details.get("learning_language_contraction") if user_language_details else None
+        language_learning = user_language_details.get("learning_language_name") if user_language_details else None
+        language_native = user_language_details.get("native_language_name") if user_language_details else None
+        level = user_language_details.get("level_name") if user_language_details else None
+
+
+        in_memory_audio.name = filename_for_transcriber
+        user_text = transcribe_audio_in_memory(in_memory_audio, filename, ll_contraction).strip()
+
+        if not user_text:
+            return jsonify({"error": "No speech detected in the audio."}), 400
+
+        corrected_text = correct_text(user_text, language_learning, language_native, level)
+        feedback = evaluate_text(user_text, corrected_text, language_learning, language_native, level)
+
+        print('Corrected text:', corrected_text)
+        print('Feedback:', feedback)
+
         return jsonify({
             "status": "success",
             "transcription": user_text,
-            "ai_response": None
+            "corrected_text": corrected_text,
+            "feedback": feedback,
+            "lesson_id": lesson_id,
         }), 200
 
     except Exception as e:
-        # Aquí puedes usar tu logger preferido
-        print(f"Error procesando audio: {e}")
+        print(f"Error processing audio: {e}")
         return jsonify({"error": "Hubo un error procesando el audio."}), 500
+
+    finally:
+        try:
+            if os.path.exists(saved_path):
+                os.remove(saved_path)
+        except OSError:
+            pass
