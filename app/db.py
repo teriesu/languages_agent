@@ -1,20 +1,10 @@
-from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
-from .config import Config
+db = SQLAlchemy()
+migrate = Migrate()
 
 
-
-
-def init_app(app: Flask | None = None) -> None:
-    if app is None:
-        app = Flask(__name__)
-        app.config.from_object(Config)
-
+def init_app(app):
     db.init_app(app)
-    with app.app_context():
-        db.create_all()
-
-
-if __name__ == "__main__":
-    init_app()
+    migrate.init_app(app, db)

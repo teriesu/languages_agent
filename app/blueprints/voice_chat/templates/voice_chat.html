@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="chat-shell card voice-chat">
+    <header class="voice-chat__hero">
+      <div class="voice-chat__intro">
+        <p class="voice-chat__eyebrow">Speaking practice</p>
+        <h2>Voice Chat</h2>
+        <p class="voice-chat__summary">
+          Record your voice or upload an audio file, and get feedback on pronunciation, grammar, and flow with a softer, more playful learning surface.
+        </p>
+        <div class="voice-chat__chips" aria-hidden="true">
+          <span>Pronunciation</span>
+          <span>Grammar</span>
+          <span>Confidence</span>
+        </div>
+      </div>
+
+      <div class="voice-chat__controls">
+        <button id="recordButton" class="voice-chat__button voice-chat__button--primary" type="button">🎤 Start recording</button>
+        <label for="audioFileInput" class="voice-chat__button voice-chat__button--secondary">📁 Choose audio (.webm/.mp3)</label>
+        <input id="audioFileInput" type="file" accept=".webm,.mp3,audio/webm,audio/mpeg" />
+        <button id="processAudioButton" class="voice-chat__button voice-chat__button--primary" type="button" disabled>⬆️ Send audio</button>
+        <span id="recordingStatus" class="voice-chat__status" style="display: none;">🔴 Recording...</span>
+      </div>
+    </header>
+
+    <div id="audioResult" class="voice-chat__results">
+      <article id="originalTextCard" class="card voice-chat__result" hidden>
+        <p class="voice-chat__card-label">Original text</p>
+        <p id="originalTextContent" class="result-text"></p>
+      </article>
+
+      <article id="correctedTextCard" class="card voice-chat__result" hidden>
+        <p class="voice-chat__card-label">Corrected text</p>
+        <p id="correctedTextContent" class="result-text result-text--corrected"></p>
+      </article>
+
+      <article id="feedbackCard" class="card voice-chat__result" hidden>
+        <p class="voice-chat__card-label">Feedback</p>
+        <p id="feedbackContent" class="result-text"></p>
+      </article>
+    </div>
+
+    <script>
+      const processAudioUrl = "{{ url_for('voice_chat.process_audio') }}";
+    </script>
+    <script src="{{ url_for('voice_chat.static', filename='js/script.js') }}" defer></script>
+  </section>
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{{ url_for('voice_chat.static', filename='css/voice_chat.css') }}" />
+{% endblock %}

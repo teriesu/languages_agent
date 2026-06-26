@@ -6,9 +6,10 @@
     <title>LangLearn Studio</title>
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=PT+Serif:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap"
     />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    {% block extra_head %}{% endblock %}
   </head>
   <body>
     <div class="page-shell">
@@ -20,13 +21,22 @@
         <nav class="hero-nav">
           {% if session.get('user_id') %}
           <span class="hero-user">{{ session.get('username') }}</span>
-          <a href="{{ url_for('main.logout') }}">Log out</a>
+          <a href="{{ url_for('auth.logout') }}">Log out</a>
           {% else %}
-          <a href="{{ url_for('main.login') }}">Log in</a>
-          <a class="pill" href="{{ url_for('main.register') }}">Sign up</a>
+          <a href="{{ url_for('auth.login') }}">Log in</a>
+          <a class="pill" href="{{ url_for('auth.register') }}">Sign up</a>
           {% endif %}
         </nav>
       </header>
+      {% if session.get('user_id') %}
+      <nav class="main-nav">
+        <ul class="nav-menu">
+          <li><a href="{{ url_for('main_chat.chat') }}" class="nav-link">Chat</a></li>
+          <li><a href="{{ url_for('voice_chat.chat') }}" class="nav-link">Lessons</a></li>
+          <li><a href="#" class="nav-link">Profile</a></li>
+        </ul>
+      </nav>
+      {% endif %}
       <main class="content-shell">{% block content %}{% endblock %}</main>
     </div>
     <script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>

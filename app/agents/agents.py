@@ -1,5 +1,38 @@
+import os
 from dataclasses import dataclass
+from dotenv import load_dotenv
 from typing import Iterable
+from langchain_openai import ChatOpenAI
+from openai import OpenAI
+from langsmith import traceable
+from pydub import AudioSegment
+
+import io
+
+load_dotenv()
+
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+@traceable(run_type="tool", name="Whisper_STT")
+def transcribe_audio_in_memory(audio_bytes: io.BytesIO, filename: str, language_code: str | None) -> str:
+    """Filtra un poco la señal de ruido de fondo y devuelve la transcripción."""
+    
+    audio_bytes.seek(0)
+    audio = AudioSegment.from_file(audio_bytes)
+    audio = audio.set_frame_rate(16000)
+    audio_louder = audio
+
+    louder_buffer = io.BytesIO()
+    audio_louder.export(louder_buffer, format="webm")
+    louder_buffer.seek(0)
+    louder_buffer.name = filename 
+    
+    transcription = client.audio.transcriptions.create(
+        model="whisper-1",
+        file=louder_buffer,
+        language=language_code or "de"
+    )
+    return transcription.text
 
 try:
     from langchain.chains import LLMChain

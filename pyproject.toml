@@ -1,0 +1,20 @@
+[project]
+name = "langlearn-app"
+version = "0.1.0"
+description = "Lightweight Flask backend for a LangGraph + LangChain assisted language tutor."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "Flask",
+    "Flask-SQLAlchemy",
+    "SQLAlchemy",
+    "psycopg[binary]",
+    "python-dotenv",
+    "langchain",
+    "langgraph",
+    "langsmith",
+    "Werkzeug",
+    "langchain-openai",
+    "pydub",
+    "Flask-Migrate"
+]
