@@ -93,10 +93,8 @@ def process_audio():
             return jsonify({"error": "No speech detected in the audio."}), 400
 
         corrected_text = correct_text(user_text, language_learning, language_native, level)
-        feedback = evaluate_text(user_text, corrected_text, language_learning, language_native, level)
-
-        print('Corrected text:', corrected_text)
-        print('Feedback:', feedback)
+        # feedback = evaluate_text(user_text, corrected_text, language_learning, language_native, level)
+        feedback = "Feedback temporary disabled for costs, please check the corrected text."
 
         return jsonify({
             "status": "success",
