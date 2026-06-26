@@ -66,7 +66,6 @@ def process_audio():
             file_bytes = saved.read()
     
         if extension == ".webm":
-            print(f"📦 Abstrayendo canal de audio purificado desde el contenedor: {content_type}")
         
             audio_segment = AudioSegment.from_file(io.BytesIO(file_bytes), format="webm")
             

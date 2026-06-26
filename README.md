@@ -18,11 +18,14 @@ Langlearn is a Flask-powered language tutor foundation that pairs user-driven ch
 
 ## Directory highlights
 
-- `app/models.py`: Users, lessons, concepts, and vector embeddings.
-- `app/routes.py`: Auth + chat experience (login/register + lesson-aware chat).
-- `app/agents.py`: Skeleton functions for review/explain/correct/evaluate/create agents.
+- `app/models.py`: Users, lessons, concepts, vector embeddings.
+- `app/routes.py`: The main module to manage the Flask integration.
+- `app/blueprints/`: Contains the Flask modules of the application.
+- `app/blueprints/voice_chat`: The voice integration of the app. It corrects the phrase construction.
+- `app/blueprints/voice_chat`: The main integration of the app. It contains the user interaction with the agents.
+- `app/agents/`: Skeleton functions for review/explain/correct/evaluate/create agents.
 - `app/templates/*`: Responsive chat layout with lesson selector and gradient styling.
-- `app/static/css/style.css`: Purposeful typography + tone for the interface.
+- `app/seed.py`: In case of need to restore the db, it introduces base values in the original tables.
 
 ## Review the db
 - Run the command `psql -U postgres -d langlearn_db` inside of the docker container where the db is running.
